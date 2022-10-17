@@ -105,7 +105,7 @@
       (doseq [r-class r-classes]
         (println (str "Klasse: " (name r-class)))
         (println "==============================================================================================")
-        (println "Drvr | Bru | resultaten")
+        (println "Drvr | Bru | Resultaten")
         (println "----------------------------------------------------------------------------------------------")
         (let [drivers (drivers-by-class r-class facts)
               driver-stats (map #(driver-stats % r-class races facts) drivers)
