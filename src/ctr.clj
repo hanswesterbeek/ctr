@@ -1,7 +1,6 @@
 (ns ctr
   (:require [clojure.data.csv :as csv]
-            [clojure.java.io :as io])
-  )
+            [clojure.java.io :as io]))
 
 (defn csv-data->maps [csv-data]
   (map zipmap
@@ -10,23 +9,23 @@
             repeat)
        (rest csv-data)))
 
-(def scrap-reference {
-                      13 13, 14 13, 15 13, 16 13 17 13
-           18 14,
-           19 15,
-           20 16, 21 16,
-           22 17,
-           23 18,
-           24 18,
-           25 19,
-           26 20})
+(def scrap-reference {13 0, 14 1, 15 2, 16 3, 17 4, 18 4, 19 4,
+                      20 4, 21 5, 22 5, 23 5, 24 6, 25 6, 26 6})
 
-(defn races-to-count-by-num-starts
-  [actual-starts]
-  (if
-    (< actual-starts (first (sort < (keys scrap-reference))))
-      actual-starts
-      (get scrap-reference actual-starts)))
+(defn consistent-race-id
+  [original]
+  (let [splitted (clojure.string/split original #"-")
+        lh (clojure.string/lower-case (get splitted 0))
+        rh-as-int (Integer/parseInt (get splitted 1))]
+    (str lh "-" (format "%02d" rh-as-int))))
+
+(defn races-to-scrap-by-num-races
+  [num-races]
+  (let [x (sort < (keys scrap-reference))]
+    (cond
+      (< num-races (first x)) 0
+      (> num-races (last x)) (get num-races scrap-reference))
+      :else (get scrap-reference num-races)))
 
 (defn drivers-by-class
   [rclass facts]
@@ -35,11 +34,26 @@
       #(:driver %)
       (filter
         (fn [row] (= rclass (:rclass row)))
-        facts)
-      )))
+        facts))))
+
+(defn classification
+  [race driver rclass facts]
+  (let [maybe-position (:position
+                         (first
+                           (filter
+                             #(and
+                                (= (:driver %) driver)
+                                (= (:rclass %) rclass)
+                                (= (:race %) race))
+                             facts)))]
+  (if (some? maybe-position)
+    (format "%2d" maybe-position)
+    "  "
+    )
+  ))
 
 (defn driver-stats
-  [driver rclass facts]
+  [driver rclass races facts]
   (let [
         raw (sort >
               (map
@@ -48,20 +62,15 @@
                 (filter
                   #(and
                      (= (:driver %) driver)
-                     (= (:rclass %) rclass)
-                     )
+                     (= (:rclass %) rclass))
                   facts)))
         bruto (reduce + raw)
-        num-races (count raw)
-        num-to-consider (races-to-count-by-num-starts num-races)
-        relevant-results (take num-to-consider raw)
-        netto (reduce + relevant-results)]
+        p (map #(classification % driver rclass facts) races)
+        netto 0]
     {:driver driver
      :bruto bruto
      :by-race raw
-     :total-num-races num-races
-     :num-counting-races num-to-consider
-     :relevant-results relevant-results
+     :p p
      :netto netto
      }
     )
@@ -77,24 +86,30 @@
                      {:points (Integer/parseInt (:points row))
                       :driver (clojure.string/lower-case (:driver row))
                       :rclass (keyword (:rclass row))
+                      :position (Integer/parseInt (:position row))
+                      :race (consistent-race-id (:race row))
                       })
                      raw)
-          r-classes (map #(keyword %) (set (map :rclass facts)))]
+          races (apply sorted-set (set (map #(get % :race) facts)))
+          num-races (count races)
+          r-classes (map #(keyword %) (set (map :rclass facts)))
+          num-to-scrap (races-to-scrap-by-num-races num-races)]
       (println "==========================================")
-      (println "Legenda")
-      (println "net: punten na schrap")
-      (println "bru: punten voor schrap")
-      (println "  r: totaal aantal gereden races")
-      (println " tr: tellende races voor eindresultaat")
+      (println "Legenda:")
+      (println " - net: punten na schrap")
+      (println " - bru: punten voor schrap")
+      (println "Races verwerkt:     " num-races)
+      (println "Aantal te schrappen: " num-to-scrap)
       (println "==========================================")
+
       (doseq [r-class r-classes]
         (println (str "Klasse: " (name r-class)))
-        (println "=========================================================================")
-        (println "Drvr | Net | Bru | R  | Tr | Relevante resultaten")
-        (println "-------------------------------------------------------------------------")
+        (println "==============================================================================================")
+        (println "Drvr | Bru | resultaten")
+        (println "----------------------------------------------------------------------------------------------")
         (let [drivers (drivers-by-class r-class facts)
-              driver-stats (map #(driver-stats % r-class facts) drivers)
-              sorted-by-netto (sort-by :netto > driver-stats)]
-          (doseq [item sorted-by-netto]
-            (println (str (:driver item) " | " (format "%03d" (:netto item)) " | " (format "%03d" (:bruto item)) " | "(format "%02d" (:total-num-races item)) " | " (format "%02d" (:num-counting-races item)) " | " (clojure.string/join " " (:relevant-results item)))))
+              driver-stats (map #(driver-stats % r-class races facts) drivers)
+              sorted-by-bruto (sort-by :bruto > driver-stats)]
+          (doseq [item sorted-by-bruto]
+            (println (str (:driver item) " | " (format "%3d" (:bruto item)) " | " (clojure.string/join " " (:p item)))))
           (println))))))
