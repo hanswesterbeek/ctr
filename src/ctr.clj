@@ -32,23 +32,23 @@
         facts)
       )))
 
-(defn scores
+(defn driver-stats
   [driver rclass facts]
-  ; returns a list of scores like [25 18 23] in descending order
   (let [
         raw (sort >
-                  (map
-                    (fn [row]
-                      (:points row))
-                    (filter
-                      #(and
-                         (= (:driver %) driver)
-                         (= (:rclass %) rclass)
-                         )
-                      facts)))
+              (map
+                (fn [row]
+                  (:points row))
+                (filter
+                  #(and
+                     (= (:driver %) driver)
+                     (= (:rclass %) rclass)
+                     )
+                  facts)))
         bruto (reduce + raw)
         ]
-    {:bruto bruto
+    {:driver driver
+     :bruto bruto
      :by-race raw}
     )
   )
@@ -72,15 +72,11 @@
       (doseq [r-class r-classes]
         (println (str "Klasse: " r-class ))
         (println "############################")
-        (let [
-              drivers (drivers-by-class r-class facts)
-              ;scores (map #({:driver % :netto (:netto (scores % r-class facts))}) drivers)
-              ;sorted (into (sorted-map-by (fn [key1 key2] (compare (key2 scores) (key1 scores)))) scores)
-              ]
-          (doseq [driver drivers]
-            (let
-              [driver-scores (scores driver r-class facts)]
-
-              (println (str driver " " (format "%03d" (:bruto driver-scores)) " " (:by-race driver-scores)))
-              )))))))
+        (let [drivers (drivers-by-class r-class facts)
+              driver-stats (map #(driver-stats % r-class facts) drivers)
+              sorted-by-bruto (sort-by :bruto > driver-stats)]
+          (doseq [item sorted-by-bruto]
+              (println (str (:driver item) " " (format "%03d" (:bruto item)) " " (:by-race item))))
+          (println)
+            )))))
 
