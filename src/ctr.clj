@@ -80,15 +80,20 @@
                       })
                      raw)
           r-classes (map #(keyword %) (set (map :rclass facts)))]
+      (println "net: punten na schrap")
+      (println "bru: punten voor schrap")
+      (println " r: totaal aantal gereden races, tr: tellende races voor eindresultaat")
+
+
+       ;bru tr cr r-results")
       (doseq [r-class r-classes]
         (println (str "Klasse: " r-class ))
-        (println "----------------------------------------------------")
-        (println "drv  net bru rr results")
+        (println "=========================================================================")
+        (println "Drvr | Net | Bru | R  | Tr | Relevante resultaten")
+        (println "-------------------------------------------------------------------------")
         (let [drivers (drivers-by-class r-class facts)
               driver-stats (map #(driver-stats % r-class facts) drivers)
               sorted-by-netto (sort-by :netto > driver-stats)]
           (doseq [item sorted-by-netto]
-             ;"drv net bru r results"
-            (println (str (:driver item) " " (format "%03d" (:netto item)) " " (format "%03d" (:bruto item)) " " (format "%02d" (:num-counting-races item)) " " (pr-str (:relevant-results item)))))
+            (println (str (:driver item) " | " (format "%03d" (:netto item)) " | " (format "%03d" (:bruto item)) " | "(format "%02d" (:total-num-races item)) " | " (format "%02d" (:num-counting-races item)) " | " (clojure.string/join " " (:relevant-results item)))))
           (println))))))
-
