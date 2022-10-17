@@ -80,14 +80,15 @@
                       })
                      raw)
           r-classes (map #(keyword %) (set (map :rclass facts)))]
+      (println "==========================================")
+      (println "Legenda")
       (println "net: punten na schrap")
       (println "bru: punten voor schrap")
-      (println " r: totaal aantal gereden races, tr: tellende races voor eindresultaat")
-
-
-       ;bru tr cr r-results")
+      (println "  r: totaal aantal gereden races")
+      (println " tr: tellende races voor eindresultaat")
+      (println "==========================================")
       (doseq [r-class r-classes]
-        (println (str "Klasse: " r-class ))
+        (println (str "Klasse: " (name r-class)))
         (println "=========================================================================")
         (println "Drvr | Net | Bru | R  | Tr | Relevante resultaten")
         (println "-------------------------------------------------------------------------")
