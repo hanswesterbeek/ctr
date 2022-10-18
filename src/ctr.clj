@@ -70,16 +70,16 @@
                      (= (:driver %) driver)
                      (= (:rclass %) rclass))
                   facts)))
-        bruto (reduce + actual)
         padded (sort > (pad num-races-held actual 0))
         scrapped-p (drop-last (races-to-scrap-by-num-races num-races-projected) padded)
-        net-p (reduce + scrapped-p)
+        scrapped-f (drop-last (races-to-scrap-by-num-races num-races-held) padded)
         p (map #(classification % driver rclass facts) races)]
     {:driver driver
-     :bruto bruto
+     :bruto (reduce + actual)
      :by-race actual
      :p p
-     :netp net-p
+     :proj (reduce + scrapped-p)
+     :fini (reduce + scrapped-f)
      }
     )
   )
@@ -106,21 +106,21 @@
       (println "Legenda:")
       (println " -  pnt: punten voor schrap")
       (println " - proj: punten na geprojecteerde schrap")
+      (println " - fini: punten incl schrap indien seizoen nu eindigt ('finito')")
       (println "Races gehouden:             " (format "%2d" num-races-past))
       (println "Races te schrappen:         " (format "%2d" num-to-scrap))
       (println "Geprojecteerde races:       " (format "%2d" num-races-projected))
       (println "Geprojecteerde schrapraces: " (format "%2d" (races-to-scrap-by-num-races num-races-projected)))
-
       (println "==========================================")
 
       (doseq [r-class r-classes]
         (println (str "Klasse: " (name r-class)))
         (println "==============================================================================================")
-        (println "Drvr | pnt | proj | Resultaten")
+        (println "Drvr | pnt | proj | fini | Resultaten")
         (println "----------------------------------------------------------------------------------------------")
         (let [drivers (drivers-by-class r-class facts)
               driver-stats (map #(driver-stats % r-class races facts num-races-past) drivers)
               sorted-by-bruto (sort-by :bruto > driver-stats)]
           (doseq [item sorted-by-bruto]
-            (println (str (:driver item) " | " (format "%3d" (:bruto item)) " | " (format "%3d" (:netp item)) " | " (clojure.string/join " " (:p item)))))
+            (println (str (:driver item) " | " (format "%3d" (:bruto item)) " | " (format "%3d" (:proj item)) "  | " (format "%3d" (:fini item)) "  | " (clojure.string/join " " (:p item)))))
           (println))))))
