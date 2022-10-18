@@ -9,6 +9,8 @@
             repeat)
        (rest csv-data)))
 
+(def num-races-projected 25)
+
 (def scrap-reference {13 0, 14 1, 15 2, 16 3, 17 4, 18 4, 19 4,
                       20 4, 21 5, 22 5, 23 5, 24 6, 25 6, 26 6})
 
@@ -52,10 +54,14 @@
     )
   ))
 
+(defn pad [n coll val]
+  (take n (concat coll (repeat val))))
+
+
 (defn driver-stats
-  [driver rclass races facts]
+  [driver rclass races facts num-races-held]
   (let [
-        raw (sort >
+        actual (sort >
               (map
                 (fn [row]
                   (:points row))
@@ -64,14 +70,16 @@
                      (= (:driver %) driver)
                      (= (:rclass %) rclass))
                   facts)))
-        bruto (reduce + raw)
-        p (map #(classification % driver rclass facts) races)
-        netto 0]
+        bruto (reduce + actual)
+        padded (sort > (pad num-races-held actual 0))
+        scrapped-p (drop-last (races-to-scrap-by-num-races num-races-projected) padded)
+        net-p (reduce + scrapped-p)
+        p (map #(classification % driver rclass facts) races)]
     {:driver driver
      :bruto bruto
-     :by-race raw
+     :by-race actual
      :p p
-     :netto netto
+     :netp net-p
      }
     )
   )
@@ -91,25 +99,28 @@
                       })
                      raw)
           races (apply sorted-set (set (map #(get % :race) facts)))
-          num-races (count races)
+          num-races-past (count races)
           r-classes (map #(keyword %) (set (map :rclass facts)))
-          num-to-scrap (races-to-scrap-by-num-races num-races)]
+          num-to-scrap (races-to-scrap-by-num-races num-races-past)]
       (println "==========================================")
       (println "Legenda:")
-      (println " - net: punten na schrap")
-      (println " - bru: punten voor schrap")
-      (println "Races verwerkt:     " num-races)
-      (println "Aantal te schrappen: " num-to-scrap)
+      (println " -  pnt: punten voor schrap")
+      (println " - proj: punten na geprojecteerde schrap")
+      (println "Races gehouden:             " (format "%2d" num-races-past))
+      (println "Races te schrappen:         " (format "%2d" num-to-scrap))
+      (println "Geprojecteerde races:       " (format "%2d" num-races-projected))
+      (println "Geprojecteerde schrapraces: " (format "%2d" (races-to-scrap-by-num-races num-races-projected)))
+
       (println "==========================================")
 
       (doseq [r-class r-classes]
         (println (str "Klasse: " (name r-class)))
         (println "==============================================================================================")
-        (println "Drvr | Bru | Resultaten")
+        (println "Drvr | pnt | proj | Resultaten")
         (println "----------------------------------------------------------------------------------------------")
         (let [drivers (drivers-by-class r-class facts)
-              driver-stats (map #(driver-stats % r-class races facts) drivers)
+              driver-stats (map #(driver-stats % r-class races facts num-races-past) drivers)
               sorted-by-bruto (sort-by :bruto > driver-stats)]
           (doseq [item sorted-by-bruto]
-            (println (str (:driver item) " | " (format "%3d" (:bruto item)) " | " (clojure.string/join " " (:p item)))))
+            (println (str (:driver item) " | " (format "%3d" (:bruto item)) " | " (format "%3d" (:netp item)) " | " (clojure.string/join " " (:p item)))))
           (println))))))
