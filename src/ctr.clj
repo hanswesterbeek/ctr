@@ -86,8 +86,8 @@
 
 
 (defn -main
-  []
-  (with-open [reader (io/reader (io/resource "results.csv"))]
+  [&args]
+  (with-open [reader (io/reader (first *command-line-args*))]
     (let [raw (csv-data->maps (csv/read-csv reader))
           facts (map
                   (fn [row]

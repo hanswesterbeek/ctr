@@ -1,5 +1,7 @@
 # ADPCR stand voor finales 2022
 
+Source-data: https://docs.google.com/spreadsheets/d/10a5dLbOyYEf7SM7vrvB-njTRFpW3fwpsbI30IwA01wU/export?exportFormat=csv
+
 ```
 ==========================================
 Legenda:
