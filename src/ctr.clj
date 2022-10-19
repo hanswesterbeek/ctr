@@ -79,7 +79,7 @@
         p (map #(classification % driver rclass facts) races)]
     {:driver driver
      :bruto (reduce + actual)
-     :by-race actual
+     :by-race padded
      :p p
      :proj (reduce + scrapped-p)
      :fini (reduce + scrapped-f)
@@ -123,12 +123,15 @@
               max-driver-name-length (apply max (map #(count %) names))
               driver-name-format (str "%-" max-driver-name-length "s")
               driver-stats (map #(driver-stats % r-class races facts num-races-past) drivers)
-              sorted-by-bruto (sort-by :bruto > driver-stats)]
+              ranking (sort-by :fini > driver-stats)]
           (println (str "Klasse: " (name r-class)))
           (println "==============================================================================================")
-          (println (format driver-name-format (str "Drvr"))" |pnt  |proj |fini |Resultaten")
+          (println (format driver-name-format (str "Drvr"))"| fini|brut | punten / resultaten")
           (println "----------------------------------------------------------------------------------------------")
-          (doseq [item sorted-by-bruto]
-            (println (format driver-name-format (get all-drivers (:driver item))) " |"(format "%3d" (:bruto item)) "|"(format "%3d" (:proj item)) "|"(format "%3d" (:fini item)) "|" (clojure.string/join " " (:p item))))
+          (doseq [item ranking]
+            (let [formatted-points (clojure.string/join " "(map #(format "%2d" %) (:by-race item)))]
+              (println (format driver-name-format (get all-drivers (:driver item))) "|"(format "%3d" (:fini item))"|"(format "%3d" (:bruto item)) "|"formatted-points))
+              )
+
           (println)))
       )))
