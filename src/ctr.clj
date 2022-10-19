@@ -103,7 +103,7 @@
                      raw)
           races (apply sorted-set (set (map #(get % :race) facts)))
           num-races-past (count races)
-          r-classes (map #(keyword %) (set (map :rclass facts)))
+          r-classes (apply sorted-set (map #(keyword %) (set (map :rclass facts))))
           num-to-scrap (races-to-scrap-by-num-races num-races-past)]
       (println "==========================================")
       (println "Legenda:")
@@ -126,9 +126,9 @@
               sorted-by-bruto (sort-by :bruto > driver-stats)]
           (println (str "Klasse: " (name r-class)))
           (println "==============================================================================================")
-          (println (format driver-name-format (str "Drvr")) " | pnt | proj | fini | Resultaten")
+          (println (format driver-name-format (str "Drvr"))" |pnt  |proj |fini |Resultaten")
           (println "----------------------------------------------------------------------------------------------")
           (doseq [item sorted-by-bruto]
-            (println (format driver-name-format (get all-drivers (:driver item))) " | " (format "%3d" (:bruto item)) " | " (format "%3d" (:proj item)) "  | " (format "%3d" (:fini item)) "  | " (clojure.string/join " " (:p item))))
+            (println (format driver-name-format (get all-drivers (:driver item))) " |"(format "%3d" (:bruto item)) "|"(format "%3d" (:proj item)) "|"(format "%3d" (:fini item)) "|" (clojure.string/join " " (:p item))))
           (println)))
       )))
