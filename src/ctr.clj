@@ -1,6 +1,8 @@
 (ns ctr
   (:require [clojure.data.csv :as csv]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [refdata :as ref]
+            ))
 
 (defn csv-data->maps [csv-data]
   (map zipmap
@@ -8,6 +10,8 @@
             (map keyword)
             repeat)
        (rest csv-data)))
+
+(def all-drivers (ref/all-drivers (second *command-line-args*)))
 
 (def num-races-projected 25)
 
@@ -57,7 +61,6 @@
 (defn pad [n coll val]
   (take n (concat coll (repeat val))))
 
-
 (defn driver-stats
   [driver rclass races facts num-races-held]
   (let [
@@ -86,13 +89,13 @@
 
 
 (defn -main
-  [&args]
+  [& args]
   (with-open [reader (io/reader (first *command-line-args*))]
     (let [raw (csv-data->maps (csv/read-csv reader))
           facts (map
                   (fn [row]
                      {:points (Integer/parseInt (:points row))
-                      :driver (clojure.string/lower-case (:driver row))
+                      :driver (keyword (clojure.string/lower-case (:driver row)))
                       :rclass (keyword (:rclass row))
                       :position (Integer/parseInt (:position row))
                       :race (consistent-race-id (:race row))
@@ -114,13 +117,18 @@
       (println "==========================================")
 
       (doseq [r-class r-classes]
-        (println (str "Klasse: " (name r-class)))
-        (println "==============================================================================================")
-        (println "Drvr | pnt | proj | fini | Resultaten")
-        (println "----------------------------------------------------------------------------------------------")
+
         (let [drivers (drivers-by-class r-class facts)
+              names (vals (select-keys all-drivers drivers))
+              max-driver-name-length (apply max (map #(count %) names))
+              driver-name-format (str "%-" max-driver-name-length "s")
               driver-stats (map #(driver-stats % r-class races facts num-races-past) drivers)
               sorted-by-bruto (sort-by :bruto > driver-stats)]
+          (println (str "Klasse: " (name r-class)))
+          (println "==============================================================================================")
+          (println (format driver-name-format (str "Drvr")) " | pnt | proj | fini | Resultaten")
+          (println "----------------------------------------------------------------------------------------------")
           (doseq [item sorted-by-bruto]
-            (println (str (:driver item) " | " (format "%3d" (:bruto item)) " | " (format "%3d" (:proj item)) "  | " (format "%3d" (:fini item)) "  | " (clojure.string/join " " (:p item)))))
-          (println))))))
+            (println (format driver-name-format (get all-drivers (:driver item))) " | " (format "%3d" (:bruto item)) " | " (format "%3d" (:proj item)) "  | " (format "%3d" (:fini item)) "  | " (clojure.string/join " " (:p item))))
+          (println)))
+      )))
