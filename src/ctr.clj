@@ -15,8 +15,7 @@
 
 (def num-races-projected 25)
 
-(def scrap-reference {13 0, 14 1, 15 2, 16 3, 17 4, 18 4, 19 4,
-                      20 4, 21 5, 22 5, 23 5, 24 6, 25 6, 26 6})
+
 
 (defn consistent-race-id
   [original]
@@ -27,11 +26,11 @@
 
 (defn races-to-scrap-by-num-races
   [num-races]
-  (let [x (sort < (keys scrap-reference))]
+  (let [x (sort < (keys ref/scrap-reference))]
     (cond
       (< num-races (first x)) 0
-      (> num-races (last x)) (get num-races scrap-reference))
-      :else (get scrap-reference num-races)))
+      (> num-races (last x)) (get num-races ref/scrap-reference))
+      :else (get ref/scrap-reference num-races)))
 
 (defn drivers-by-class
   [rclass facts]
@@ -130,8 +129,6 @@
           (println "----------------------------------------------------------------------------------------------")
           (doseq [item ranking]
             (let [formatted-points (clojure.string/join " "(map #(format "%2d" %) (:by-race item)))]
-              (println (format driver-name-format (get all-drivers (:driver item))) "|"(format "%3d" (:fini item))"|"(format "%3d" (:bruto item)) "|"formatted-points))
-              )
-
+              (println (format driver-name-format (get all-drivers (:driver item))) "|"(format "%3d" (:fini item))"|"(format "%3d" (:bruto item)) "|"formatted-points)))
           (println)))
       )))

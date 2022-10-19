@@ -17,3 +17,6 @@
 (defn all-drivers
   [url]
   (load-edn url))
+
+(def scrap-reference {13 0, 14 1, 15 2, 16 3, 17 4, 18 4, 19 4,
+                      20 4, 21 5, 22 5, 23 5, 24 6, 25 6, 26 6})
