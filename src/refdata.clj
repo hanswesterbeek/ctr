@@ -29,7 +29,9 @@
                      "Gijs can Gooswillingen" :gigo
                      "Cas Havik/Huib Havik"   :teha
                      "Job van den Broek",     :jobr
-                     "Marc van der Meulen" :mame }
+                     "Marc van der Meulen" :mame
+                     "Willem de Waes" :wiwa }
+
   )
 (def class-aliases
   {
