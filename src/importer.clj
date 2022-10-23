@@ -1,16 +1,30 @@
 (ns importer
   (:require [clojure.set :as cs]
             [clojure.xml :as xml]
-            [refdata :as refdata])
+            [refdata :as refdata]
+            [clojure.test :as t])
   (:import (java.io ByteArrayInputStream)))
 
-;(def interesting-tags #{:Class :Pos :PIC :Classified :Driver})
-;
-;(defn keep-interesting [result-tag]
-;  (filter
-;    (fn[subtag]
-;      (contains? interesting-tags (get subtag :tag)))
-;    result-tag))
+(defn sanitize-driver
+  [name]
+  (apply (-> name
+             (clojure.string/lower-case)
+             (clojure.string/replace " " "")
+             )
+         (filter #(Character/isLetter %))))
+
+(t/deftest hmm
+  (t/testing "foo"
+    (t/is (= "hanswesterbeek") (sanitize-driver " Han s Wèsterbeek"))))
+
+
+(defn drivers-sanitized
+  [drivers]
+  (into {}
+        (map
+          (fn [[k v]]
+            [ k (sanitize-driver v)])
+          drivers)))
 
 (defn content-from
   [tag tags]
@@ -34,11 +48,13 @@
         lines (map
                (fn [tags]
                  (let [
-                       clazz (name (get refdata/class-aliases (clojure.string/lower-case (first (content-from :Class tags)))))
+                       clazz-raw (first (content-from :Class tags))
+                       clazz (name (get refdata/class-aliases (clojure.string/lower-case clazz-raw)))
                        pos (Integer/parseInt (first(content-from :PIC tags)))
                        points (refdata/pos-to-points pos)
                        classified (get nutty-bool (first(content-from :Classified tags)))
-                       driver (known-drivers (first (content-from :Name (content-from :Driver tags))))
+                       driver-raw (first (content-from :Name (content-from :Driver tags)))
+                       driver (or (refdata/driver-aliases driver-raw) (known-drivers driver-raw))
                        ]
                    {:class clazz
                     :points points

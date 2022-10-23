@@ -21,10 +21,22 @@
 (def scrap-reference {13 0, 14 1, 15 2, 16 3, 17 4, 18 4, 19 4,
                       20 4, 21 5, 22 5, 23 5, 24 6, 25 6, 26 6})
 
+(def driver-aliases {
+                     "Janine/Jack Rozendaal"  :tero
+                     "Jan Wim de Koekkoek"    :jwko
+                     "Niek Jan Steehouwer"    :njst
+                     "Ties van Gooswilligen"  :tego
+                     "Gijs can Gooswillingen" :gigo
+                     "Cas Havik/Huib Havik"   :teha
+                     "Job van den Broek",     :jobr
+                     "Marc van der Meulen" :mame }
+  )
 (def class-aliases
   {
+   "cc" :cayc
    "cay" :cayc
    "bx" :boxc
+   "bc" :boxc
    "944" :944c
    "rs" :rsc
    "gt" :gtc
