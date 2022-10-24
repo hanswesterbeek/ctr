@@ -15,8 +15,6 @@
 
 (def num-races-projected 25)
 
-
-
 (defn consistent-race-id
   [original]
   (let [splitted (clojure.string/split original #"-")
@@ -30,7 +28,7 @@
     (cond
       (< num-races (first x)) 0
       (> num-races (last x)) (get num-races ref/scrap-reference))
-      :else (get ref/scrap-reference num-races)))
+    :else (get ref/scrap-reference num-races)))
 
 (defn drivers-by-class
   [rclass facts]
@@ -51,11 +49,9 @@
                                 (= (:rclass %) rclass)
                                 (= (:race %) race))
                              facts)))]
-  (if (some? maybe-position)
-    (format "%2d" maybe-position)
-    "  "
-    )
-  ))
+    (if (some? maybe-position)
+      (format "%2d" maybe-position)
+      "  ")))
 
 (defn pad [n coll val]
   (take n (concat coll (repeat val))))
@@ -64,24 +60,24 @@
   [driver rclass races facts num-races-held]
   (let [
         actual (sort >
-              (map
-                (fn [row]
-                  (:points row))
-                (filter
-                  #(and
-                     (= (:driver %) driver)
-                     (= (:rclass %) rclass))
-                  facts)))
+                     (map
+                       (fn [row]
+                         (:points row))
+                       (filter
+                         #(and
+                            (= (:driver %) driver)
+                            (= (:rclass %) rclass))
+                         facts)))
         padded (sort > (pad num-races-held actual 0))
         scrapped-p (drop-last (races-to-scrap-by-num-races num-races-projected) padded)
         scrapped-f (drop-last (races-to-scrap-by-num-races num-races-held) padded)
         p (map #(classification % driver rclass facts) races)]
-    {:driver driver
-     :bruto (reduce + actual)
+    {:driver  driver
+     :bruto   (reduce + actual)
      :by-race padded
-     :p p
-     :proj (reduce + scrapped-p)
-     :fini (reduce + scrapped-f)
+     :p       p
+     :proj    (reduce + scrapped-p)
+     :fini    (reduce + scrapped-f)
      }
     )
   )
@@ -93,13 +89,13 @@
     (let [raw (csv-data->maps (csv/read-csv reader))
           facts (map
                   (fn [row]
-                     {:points (Integer/parseInt (:points row))
-                      :driver (keyword (clojure.string/lower-case (:driver row)))
-                      :rclass (keyword (:rclass row))
-                      :position (Integer/parseInt (:position row))
-                      :race (consistent-race-id (:race row))
-                      })
-                     raw)
+                    {:points   (Integer/parseInt (:points row))
+                     :driver   (keyword (clojure.string/lower-case (:driver row)))
+                     :rclass   (keyword (:rclass row))
+                     :position (Integer/parseInt (:position row))
+                     :race     (consistent-race-id (:race row))
+                     })
+                  raw)
           races (apply sorted-set (set (map #(get % :race) facts)))
           num-races-past (count races)
           r-classes (apply sorted-set (map #(keyword %) (set (map :rclass facts))))
@@ -124,11 +120,11 @@
               driver-stats (map #(driver-stats % r-class races facts num-races-past) drivers)
               ranking (sort-by :fini > driver-stats)]
           (println (str "Klasse: " (name r-class)))
-          (println "==============================================================================================")
-          (println (format driver-name-format (str "Drvr"))"| fini|brut | punten / resultaten")
-          (println "----------------------------------------------------------------------------------------------")
+          (println "=========================================================================================================================")
+          (println (format driver-name-format (str "Drvr")) "| fini|brut | punten / resultaten")
+          (println "-------------------------------------------------------------------------------------------------------------------------")
           (doseq [item ranking]
-            (let [formatted-points (clojure.string/join " "(map #(format "%2d" %) (:by-race item)))]
-              (println (format driver-name-format (get all-drivers (:driver item))) "|"(format "%3d" (:fini item))"|"(format "%3d" (:bruto item)) "|"formatted-points)))
+            (let [formatted-points (clojure.string/join " " (map #(format "%2d" %) (:by-race item)))]
+              (println (format driver-name-format (get all-drivers (:driver item))) "|" (format "%3d" (:fini item)) "|" (format "%3d" (:bruto item)) "|" formatted-points)))
           (println)))
       )))
