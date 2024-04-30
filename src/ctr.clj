@@ -1,6 +1,7 @@
 (ns ctr
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]
+            [clojure.test :as t]
             [refdata :as ref]
             ))
 
@@ -56,6 +57,35 @@
 (defn pad [n coll val]
   (take n (concat coll (repeat val))))
 
+(def disqualifications [{:class  :cayc
+                         :driver :nidr
+                         :races  2
+                         }
+                        {:class  :cayc
+                         :driver :lehi
+                         :races  2
+                         }
+                        {:class  :cayc
+                         :driver :gigo
+                         :races  2
+                         }
+                        {:class  :cayc
+                         :driver :boin
+                         :races  2
+                         }
+                        ])
+
+(defn num-dsqs-in-class
+  [driver class]
+  (let [maybe-dsqs (:races (first (filter #(and
+                                             (= (:driver %) driver)
+                                             (= (:class %) class))
+                                          disqualifications)))]
+    (if (nil? maybe-dsqs)
+      0
+      maybe-dsqs)
+    )
+  )
 (defn driver-stats
   [driver rclass races facts num-races-held]
   (let [
@@ -69,15 +99,16 @@
                             (= (:rclass %) rclass))
                          facts)))
         padded (sort > (pad num-races-held actual 0))
-        scrapped-p (drop-last (races-to-scrap-by-num-races num-races-projected) padded)
-        scrapped-f (drop-last (races-to-scrap-by-num-races num-races-held) padded)
+        dsqs (num-dsqs-in-class driver rclass)
+        with-dsqs (concat padded (take dsqs (repeat 0)))
+        scrapped-f (drop-last (races-to-scrap-by-num-races num-races-held) with-dsqs)
         p (map #(classification % driver rclass facts) races)]
     {:driver  driver
      :bruto   (reduce + actual)
-     :by-race padded
+     :by-race with-dsqs
      :p       p
-     :proj    (reduce + scrapped-p)
      :fini    (reduce + scrapped-f)
+     :dsqs dsqs
      }
     )
   )
@@ -104,11 +135,13 @@
       (println "Legenda:")
       (println " -  pnt: punten voor schrap")
       (println " - proj: punten na geprojecteerde schrap")
-      (println " - fini: punten incl schrap indien seizoen nu eindigt ('finito')")
+      (println " - fini: punten incl schrap indien")
+      (println " -  dk:  diskwalificaties")
       (println "Races gehouden:             " (format "%2d" num-races-past))
       (println "Races te schrappen:         " (format "%2d" num-to-scrap))
       (println "Geprojecteerde races:       " (format "%2d" num-races-projected))
       (println "Geprojecteerde schrapraces: " (format "%2d" (races-to-scrap-by-num-races num-races-projected)))
+      (println "Diskwalificaties: " disqualifications)
       (println "==========================================")
 
       (doseq [r-class r-classes]
@@ -121,10 +154,14 @@
               ranking (sort-by :fini > driver-stats)]
           (println (str "Klasse: " (name r-class)))
           (println "=========================================================================================================================")
-          (println (format driver-name-format (str "Drvr")) "| fini|brut | punten / resultaten")
+          (println (format driver-name-format (str "Drvr")) "| fini|brut |dk| punten / resultaten")
           (println "-------------------------------------------------------------------------------------------------------------------------")
           (doseq [item ranking]
             (let [formatted-points (clojure.string/join " " (map #(format "%2d" %) (:by-race item)))]
-              (println (format driver-name-format (get all-drivers (:driver item))) "|" (format "%3d" (:fini item)) "|" (format "%3d" (:bruto item)) "|" formatted-points)))
+              (println (format driver-name-format (get all-drivers (:driver item))) "|" (format "%3d" (:fini item)) "|" (format "%3d" (:bruto item)) "|" (format "%1d" (:dsqs item))"|" formatted-points)))
           (println)))
       )))
+
+(t/deftest hmm
+  (t/testing "dsqs"
+    (t/is (= 2 (num-dsqs-in-class :nidr :cayc)))))
