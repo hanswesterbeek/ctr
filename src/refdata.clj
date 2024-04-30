@@ -30,7 +30,7 @@
                      "Cas Havik/Huib Havik"   :teha
                      "Job van den Broek",     :jobr
                      "Marc van der Meulen" :mame
-                     "Willem de Waes" :wiwa })
+                     "Willem van Waes" :wiwa })
 
 (def eligible-finish-statuses #{"DID NOT FINISH" "FINISHED"})
 
