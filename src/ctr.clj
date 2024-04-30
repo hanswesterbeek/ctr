@@ -114,6 +114,8 @@
     )
   )
 
+(defn index-of [item coll]
+  (count (take-while (partial not= item) coll)))
 
 (defn -main
   [& args]
@@ -139,7 +141,7 @@
                  [:ul
                   ["bruto: punten voor schrap"
                    "eind: punten incl toegepaste schrap"
-                   "dk: aantal diskwalificaties"
+                   "DSQs: aantal diskwalificaties"
                    (str "Races gehouden: " (format "%2d" num-races-past))
                    (str "Maximum aantal races te schrappen: " (format "%2d" num-to-scrap))
                    ]]))
@@ -153,14 +155,14 @@
               driver-stats (map #(driver-stats % r-class races facts num-races-past) drivers)
               ranking (sort-by :fini > driver-stats)]
 
-          (println "```")
-          (println (format driver-name-format (str "Klasse: " (r-class refdata/class-names))) "|eind |bruto|dk | punten / resultaten")
-          (println "-------------------------------------------------------------------------------------------------------------------------")
+          (println "")
+          (println (format driver-name-format (str "| # | Klasse: " (r-class refdata/class-names))) " | Eind | Bruto | DSQs | Scores |")
+          (println "|---|:---|-----|-----|---|---|")
           (doseq [item ranking]
-            (let [formatted-points (clojure.string/join " " (map #(format "%2d" %) (:by-race item)))
+            (let [formatted-points (clojure.string/join " " (map #(format "%02d" %) (:by-race item)))
                   driver (get all-drivers (:driver item))]
-              (println (format driver-name-format driver) "|" (format "%3d" (:fini item)) "|" (format "%3d" (:bruto item)) "|" (format "%1d" (:dsqs item)) "|" formatted-points)))
-          (println "```")))
+              (println  "|"(+ 1 (index-of item ranking))"|" (format driver-name-format driver) " | " (format "%3d" (:fini item)) " | " (format "%3d" (:bruto item)) " | " (format "%1d" (:dsqs item)) " | `" formatted-points "`|")))
+          ))
 
       )))
 
