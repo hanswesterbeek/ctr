@@ -70,6 +70,15 @@
    "gt" :gtc
    "gt4" :gt4c})
 
+(def class-names
+  {
+   :cayc "Cayman Cup"
+   :boxc "Boxster Cup"
+   :944c "944 Cup"
+   :rsc "RS Cup"
+   :gtc "GT Cup"
+   :gt4c "GT4 Cup"})
+
 (def points-reference ; very tempting to compute this but subject to too much change
   {1 25
    2 23

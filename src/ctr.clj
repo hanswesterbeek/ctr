@@ -133,15 +133,11 @@
           num-to-scrap (races-to-scrap-by-num-races num-races-past)]
       (println "==========================================")
       (println "Legenda:")
-      (println " -  pnt: punten voor schrap")
-      (println " - proj: punten na geprojecteerde schrap")
-      (println " - fini: punten incl schrap indien")
-      (println " -  dk:  diskwalificaties")
+      (println " - bruto: punten voor schrap")
+      (println " - eind: punten incl toegepaste schrap")
+      (println " -  dk:  aantal diskwalificaties")
       (println "Races gehouden:             " (format "%2d" num-races-past))
       (println "Races te schrappen:         " (format "%2d" num-to-scrap))
-      (println "Geprojecteerde races:       " (format "%2d" num-races-projected))
-      (println "Geprojecteerde schrapraces: " (format "%2d" (races-to-scrap-by-num-races num-races-projected)))
-      (println "Diskwalificaties: " disqualifications)
       (println "==========================================")
 
       (doseq [r-class r-classes]
@@ -152,9 +148,9 @@
               driver-name-format (str "%-" max-driver-name-length "s")
               driver-stats (map #(driver-stats % r-class races facts num-races-past) drivers)
               ranking (sort-by :fini > driver-stats)]
-          (println (str "Klasse: " (name r-class)))
+          (println (str "Klasse: " (r-class refdata/class-names)))
           (println "=========================================================================================================================")
-          (println (format driver-name-format (str "Drvr")) "| fini|brut |dk| punten / resultaten")
+          (println (format driver-name-format (str "Rijder")) "|eind |bruto|dk | punten / resultaten")
           (println "-------------------------------------------------------------------------------------------------------------------------")
           (doseq [item ranking]
             (let [formatted-points (clojure.string/join " " (map #(format "%2d" %) (:by-race item)))
