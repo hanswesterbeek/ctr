@@ -25,11 +25,7 @@
 
 (defn races-to-scrap-by-num-races
   [num-races]
-  (let [x (sort < (keys ref/scrap-reference))]
-    (cond
-      (< num-races (first x)) 0
-      (> num-races (last x)) (get num-races ref/scrap-reference))
-    :else (get ref/scrap-reference num-races)))
+  (get ref/scrap-reference num-races))
 
 (defn drivers-by-class
   [rclass facts]
@@ -57,21 +53,25 @@
 (defn pad [n coll val]
   (take n (concat coll (repeat val))))
 
-(def disqualifications [{:class  :cayc
-                         :driver :nidr
+(def disqualifications [{:class  :gtc
+                         :driver :jebr
                          :races  2
                          }
                         {:class  :cayc
-                         :driver :lehi
+                         :driver :nido
                          :races  2
                          }
                         {:class  :cayc
-                         :driver :gigo
+                         :driver :tehh
                          :races  2
                          }
                         {:class  :cayc
-                         :driver :boin
-                         :races  2
+                         :driver :fvda
+                         :races  1
+                         }
+                        {:class  :944c
+                         :driver :jobr
+                         :races  1
                          }
                         ])
 
@@ -165,3 +165,7 @@
 (t/deftest hmm
   (t/testing "dsqs"
     (t/is (= 2 (num-dsqs-in-class :nidr :cayc)))))
+
+(t/deftest lower-limit-for-scraps
+  (t/testing "not enough races"
+    (t/is (= 0 (races-to-scrap-by-num-races 2)))))
