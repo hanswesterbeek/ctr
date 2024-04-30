@@ -3,6 +3,7 @@
             [clojure.java.io :as io]
             [clojure.test :as t]
             [refdata :as ref]
+            [marge.core :as marge]
             ))
 
 (defn csv-data->maps [csv-data]
@@ -131,15 +132,18 @@
           num-races-past (count races)
           r-classes (apply sorted-set (map #(keyword %) (set (map :rclass facts))))
           num-to-scrap (races-to-scrap-by-num-races num-races-past)]
-      (println "==========================================")
-      (println "Legenda:")
-      (println " - bruto: punten voor schrap")
-      (println " - eind: punten incl toegepaste schrap")
-      (println " -  dk:  aantal diskwalificaties")
-      (println "Races gehouden:             " (format "%2d" num-races-past))
-      (println "Races te schrappen:         " (format "%2d" num-to-scrap))
-      (println "==========================================")
 
+
+      (println (marge/markdown [:strong "Toelichting:"]))
+      (println (marge/markdown
+                 [:ul
+                  ["bruto: punten voor schrap"
+                   "eind: punten incl toegepaste schrap"
+                   "dk: aantal diskwalificaties"
+                   (str "Races gehouden: " (format "%2d" num-races-past))
+                   (str "Maximum aantal races te schrappen: " (format "%2d" num-to-scrap))
+                   ]]))
+      (println (marge/markdown [:hr]))
       (doseq [r-class r-classes]
 
         (let [drivers (drivers-by-class r-class facts)
@@ -148,15 +152,16 @@
               driver-name-format (str "%-" max-driver-name-length "s")
               driver-stats (map #(driver-stats % r-class races facts num-races-past) drivers)
               ranking (sort-by :fini > driver-stats)]
-          (println (str "Klasse: " (r-class refdata/class-names)))
-          (println "=========================================================================================================================")
-          (println (format driver-name-format (str "Rijder")) "|eind |bruto|dk | punten / resultaten")
+
+          (println "```")
+          (println (format driver-name-format (str "Klasse: " (r-class refdata/class-names))) "|eind |bruto|dk | punten / resultaten")
           (println "-------------------------------------------------------------------------------------------------------------------------")
           (doseq [item ranking]
             (let [formatted-points (clojure.string/join " " (map #(format "%2d" %) (:by-race item)))
                   driver (get all-drivers (:driver item))]
-              (println (format driver-name-format driver) "|" (format "%3d" (:fini item)) "|" (format "%3d" (:bruto item)) "|" (format "%1d" (:dsqs item))"|" formatted-points)))
-          (println)))
+              (println (format driver-name-format driver) "|" (format "%3d" (:fini item)) "|" (format "%3d" (:bruto item)) "|" (format "%1d" (:dsqs item)) "|" formatted-points)))
+          (println "```")))
+
       )))
 
 (t/deftest hmm
