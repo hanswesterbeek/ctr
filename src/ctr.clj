@@ -58,7 +58,7 @@
                          :races  2
                          }
                         {:class  :cayc
-                         :driver :nido
+                         :driver :nidr
                          :races  2
                          }
                         {:class  :cayc
@@ -157,8 +157,9 @@
           (println (format driver-name-format (str "Drvr")) "| fini|brut |dk| punten / resultaten")
           (println "-------------------------------------------------------------------------------------------------------------------------")
           (doseq [item ranking]
-            (let [formatted-points (clojure.string/join " " (map #(format "%2d" %) (:by-race item)))]
-              (println (format driver-name-format (get all-drivers (:driver item))) "|" (format "%3d" (:fini item)) "|" (format "%3d" (:bruto item)) "|" (format "%1d" (:dsqs item))"|" formatted-points)))
+            (let [formatted-points (clojure.string/join " " (map #(format "%2d" %) (:by-race item)))
+                  driver (get all-drivers (:driver item))]
+              (println (format driver-name-format driver) "|" (format "%3d" (:fini item)) "|" (format "%3d" (:bruto item)) "|" (format "%1d" (:dsqs item))"|" formatted-points)))
           (println)))
       )))
 
