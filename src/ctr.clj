@@ -64,7 +64,7 @@
                          }
                         {:class  :cayc
                          :driver :tehh
-                         :races  2
+                         :races  1
                          }
                         {:class  :cayc
                          :driver :fvda
@@ -156,7 +156,7 @@
               ranking (sort-by :fini > driver-stats)]
 
           (println "")
-          (println (format driver-name-format (str "| # | Klasse: " (r-class refdata/class-names))) " | Eind | Bruto | DSQs | Scores |")
+          (println (format driver-name-format (str "| # | " (r-class refdata/class-names))) " | Eind | Bruto | DSQs | Scores |")
           (println "|---|:---|-----|-----|---|---|")
           (doseq [item ranking]
             (let [formatted-points (clojure.string/join " " (map #(format "%02d" %) (:by-race item)))
