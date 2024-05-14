@@ -70,7 +70,11 @@
                          :driver :fvda
                          :races  1
                          }
-                        {:class  :944c
+
+                        {:class  :cayc
+                         :driver :pewa
+                         :races  1
+                         }                        {:class  :944c
                          :driver :jobr
                          :races  1
                          }
